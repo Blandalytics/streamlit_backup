@@ -8,35 +8,12 @@ import seaborn as sns
 import scipy as sp
 import urllib
 import os
-import boto3
 import io
 
 from PIL import Image
 from collections import Counter
 from scipy import stats
 from io import StringIO
-
-from functions import plSetup
-from functions import get_image
-from functions import key_exists
-
-#AWS Setup
-AWS_S3_BUCKET = os.environ["BUCKETEER_BUCKET_NAME"]
-AWS_ACCESS_KEY_ID = os.environ["BUCKETEER_AWS_ACCESS_KEY_ID"]
-AWS_SECRET_ACCESS_KEY = os.environ["BUCKETEER_AWS_SECRET_ACCESS_KEY"]
-region = 'us-east-1'
-s3 = boto3.resource("s3",
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-client = boto3.client('s3',
-    region_name=region,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-bucket = s3.Bucket(AWS_S3_BUCKET)
-#Run the PL Setup
-plSetup()
 
 ## Set Styling
 # Plot Style
@@ -119,11 +96,9 @@ y_bot = -0.5
 y_lim = 6
 plate_y = -.25
 
-# logo_loc = 'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/PL-text-wht.png?raw=true'
-logo = Image.open('i/PL-text-wht.png')
-# st.image(logo, width=200)
-
-# st.title("Pitchtype Cards")
+logo_loc = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/PL-text-wht.png?raw=true'
+logo = Image.open(urllib.request.urlopen(logo_loc))
+st.image(logo, width=200)
 
 # Year
 years = [2026, 2025, 2024,2023,2022,2021,2020]
@@ -133,9 +108,7 @@ year = st.selectbox('Choose a year:', years, index=0)
 def load_data(year):
     df = pd.DataFrame()
     for chunk in [1,2,3]:
-        buffer = io.BytesIO()
-        object=s3.Object('bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85',f'public/data/{year}_Pitch_Analysis_Data-{chunk}.parquet')
-        object.download_fileobj(buffer)
+        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         load_cols = ['pitchername','pitchtype','pitch_id',
                      'p_hand','b_hand','IHB','IVB','called_strike_pred',
                      'ball_pred','PLV','velo','pitch_extension',
@@ -143,7 +116,7 @@ def load_data(year):
         # if year == 2023:
         #     load_cols += ['b_hand']
         df = pd.concat([df,
-                        pd.read_parquet(buffer)[load_cols]
+                        pd.read_parquet(file_name)[load_cols]
                        ])
 
     df = (df
@@ -153,10 +126,8 @@ def load_data(year):
           .reset_index(drop=True)
          )
     df['pitchtype'] = df['pitchtype'].str.replace('SV','CU').str.replace('FO','FS')
-    buffer = io.BytesIO()
-    object=s3.Object('bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85',f'public/data/date_pitch_map.parquet')
-    object.download_fileobj(buffer)    
-    df['game_played'] = df['pitch_id'].map(pd.read_parquet(buffer).set_index('pitch_id').to_dict()['game_played'])
+    date_file = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/date_pitch_map.parquet'
+    df['game_played'] = df['pitch_id'].map(pd.read_parquet(date_file).set_index('pitch_id').to_dict()['game_played'])
     df['game_played'] = pd.to_datetime(df['game_played']).dt.date
   
     return df
@@ -597,11 +568,6 @@ def pitch_analysis_card(card_player,pitch_type,chart_type,filename):
     # fig.text(0.77,0.07,"@Blandalytics",ha='center',fontsize=10)
     # fig.text(0.77,0.05,"pitch-analysis-card.streamlit.app",ha='center',fontsize=10)
     sns.despine(left=True,bottom=True)
-    #save the fig as image for next time
-    img_data = io.BytesIO()
-    plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-    img_data.seek(0)
-    bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
     #plot the fig
     st.pyplot(fig)
 # Use image saved on the server if it exists
@@ -750,11 +716,6 @@ def kde_chart(kde_data,p_hand=p_hand,kde_thresh=0.1):
     pl_ax = fig.add_axes([0.41,0.015,0.2,0.2], anchor='S', zorder=1)
     pl_ax.imshow(logo)
     pl_ax.axis('off')
-    #save the fig as image for next time
-    img_data = io.BytesIO()
-    plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-    img_data.seek(0)
-    bucket.put_object(Body=img_data, ContentType='image/png', Key=filename_2)
     #plot the fig
     st.pyplot(fig)
 
