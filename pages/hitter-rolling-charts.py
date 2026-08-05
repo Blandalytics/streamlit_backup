@@ -132,7 +132,7 @@ plv_df = load_season_data(year)
 # @st.cache_data(ttl=3600,show_spinner=f"Loading baseline data")
 def load_baselines():
     file_name = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/hitter_stat_baselines.csv?raw=true'
-    return pd.read_csv(file_name)
+    return pd.read_csv(file_name, encoding='latin1')
 
 grouped_df = load_baselines()
 
