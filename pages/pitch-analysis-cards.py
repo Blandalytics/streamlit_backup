@@ -108,7 +108,7 @@ year = st.selectbox('Choose a year:', years, index=0)
 def load_data(year):
     df = pd.DataFrame()
     for chunk in [1,2,3]:
-        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
+        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_Pitch_Analysis_Data.parquet?raw=true'
         load_cols = ['pitchername','pitchtype','pitch_id',
                      'p_hand','b_hand','IHB','IVB','called_strike_pred',
                      'ball_pred','PLV','velo','pitch_extension',
