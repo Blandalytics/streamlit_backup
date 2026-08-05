@@ -644,15 +644,7 @@ elif chart=='Pitch Quality':
         pl_ax.axis('off')
 
         sns.despine()
-        #save the fig as image for next time
-        img_data = io.BytesIO()
-        plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-        img_data.seek(0)
-        bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
         st.pyplot(fig)
-    # if key_exists(client, AWS_S3_BUCKET, filename) == 'true':
-    #     st.markdown(f"![image](https://s3.amazonaws.com/{AWS_S3_BUCKET}/{filename}#full)")
-    # else:
     plv_card(filename)
     
 else:
@@ -814,11 +806,6 @@ else:
         pl_ax.axis('off')
         
         sns.despine()
-         #save the fig as image for next time
-        img_data = io.BytesIO()
-        plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-        img_data.seek(0)
-        bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
         st.pyplot(fig)
     # if key_exists(client, AWS_S3_BUCKET, filename) == 'true':
     #     st.markdown(f"![image](https://s3.amazonaws.com/{AWS_S3_BUCKET}/{filename}#full)")
