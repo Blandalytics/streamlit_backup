@@ -1,4 +1,3 @@
-#PLV Aresenal Distribution
 import streamlit as st
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -97,7 +96,7 @@ seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/m
 def load_data(year):
     df = pd.DataFrame()
     for month in range(3,11):
-        file_name = f'hhttps://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
+        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
                         pd.read_parquet(file_name)[['pitchername','pitcher_mlb_id','pitch_id',
                                                     'p_hand','b_hand','pitchtype','PLV','velo',
@@ -645,15 +644,7 @@ elif chart=='Pitch Quality':
         pl_ax.axis('off')
 
         sns.despine()
-        #save the fig as image for next time
-        img_data = io.BytesIO()
-        plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-        img_data.seek(0)
-        bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
         st.pyplot(fig)
-    # if key_exists(client, AWS_S3_BUCKET, filename) == 'true':
-    #     st.markdown(f"![image](https://s3.amazonaws.com/{AWS_S3_BUCKET}/{filename}#full)")
-    # else:
     plv_card(filename)
     
 else:
@@ -815,11 +806,6 @@ else:
         pl_ax.axis('off')
         
         sns.despine()
-         #save the fig as image for next time
-        img_data = io.BytesIO()
-        plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-        img_data.seek(0)
-        bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
         st.pyplot(fig)
     # if key_exists(client, AWS_S3_BUCKET, filename) == 'true':
     #     st.markdown(f"![image](https://s3.amazonaws.com/{AWS_S3_BUCKET}/{filename}#full)")
