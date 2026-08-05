@@ -8,7 +8,6 @@ import seaborn as sns
 import scipy as sp
 import urllib
 import os
-import boto3
 import io
 
 
@@ -16,28 +15,6 @@ from PIL import Image
 from collections import Counter
 from scipy import stats
 from io import StringIO
-
-from functions import plSetup
-from functions import get_image
-from functions import key_exists
-#AWS Setup
-AWS_S3_BUCKET = os.environ["BUCKETEER_BUCKET_NAME"]
-AWS_ACCESS_KEY_ID = os.environ["BUCKETEER_AWS_ACCESS_KEY_ID"]
-AWS_SECRET_ACCESS_KEY = os.environ["BUCKETEER_AWS_SECRET_ACCESS_KEY"]
-region = 'us-east-1'
-s3 = boto3.resource("s3",
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-client = boto3.client('s3',
-    region_name=region,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-bucket = s3.Bucket(AWS_S3_BUCKET)
-#Run the PL Setup
-plSetup()
-
 ## Set Styling
 # Plot Style
 pl_white = '#FEFEFE'
@@ -103,29 +80,24 @@ pitch_names = {
     'UN':'Unknown', 
 }
 
-# logo_loc = 'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/PL-text-wht.png?raw=true'
-logo = Image.open('i/PL-text-wht.png')
-# st.image(logo, width=200)
+logo_loc = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/PL-text-wht.png?raw=true'
+logo = Image.open(urllib.request.urlopen(logo_loc))
+st.image(logo, width=200)
 
 # Year
 years = [2026, 2025,2024,2023,2022,2021,2020]
 year = st.selectbox('Choose a year:', years, index=0)
 
-csv_obj = client.get_object(Bucket='bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85', Key='public/data/plv_seasonal_constants.csv')
-body = csv_obj['Body']
-csv_string = body.read().decode('utf-8')
-seasonal_constants = pd.read_csv(StringIO(csv_string)).set_index('year')
+seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
+
 # Load Data
 @st.cache_data
 def load_data(year):
     df = pd.DataFrame()
     for month in range(3,11):
-        # file_name = f'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
-        buffer = io.BytesIO()
-        object=s3.Object('bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85',f'public/data/{year}_PLV_App_Data-{month}.parquet')
-        object.download_fileobj(buffer)
+        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
-                        pd.read_parquet(buffer)[['pitchername','pitcher_mlb_id','pitch_id',
+                        pd.read_parquet(file_name)[['pitchername','pitcher_mlb_id','pitch_id',
                                                     'p_hand','b_hand','pitchtype','PLV','velo',
                                                     'IHB','IVB','plv_runs_faced'
                                                    ]]
@@ -172,10 +144,7 @@ pitch_threshold = st.number_input(f'Min # of Pitches:',
                                   value=int(default_count))
 
 def get_pla(year,pitch_threshold=pitch_threshold,p_hand=['L','R'],b_hand=['L','R']):
-    csv_obj = client.get_object(Bucket='bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85', Key='public/data/pla_data.csv')
-    body = csv_obj['Body']
-    csv_string = body.read().decode('latin1')
-    pla_data = pd.read_csv(StringIO(csv_string))
+    pla_data = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/pla_data.csv?raw=true', encoding='latin1')
     season_df = (pla_data
              .loc[(pla_data['year_played']==year) &
                   pla_data['p_hand'].isin(p_hand) &
@@ -242,8 +211,6 @@ fill_val = pla_df[format_cols].max().max()+0.01
 
 def pitchtype_color(s):
     return f"background-color: {marker_colors[s]}" if s in list(marker_colors.keys()) else None
-
-
 
 class_df = (plv_df
              .rename(columns={
