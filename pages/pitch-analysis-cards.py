@@ -174,13 +174,13 @@ season_end = base_df.loc[base_df['pitchername']==card_player,'game_played'].max(
 
 col1, col2 = st.columns(2)
 with col1:
-    start_date = st.date_input(f"Start Date (First game: {season_start:%b %d})", 
+    start_date = st.date_input(f"Start Date (First game: {season_start})", 
                                season_start,
                                min_value=season_start,
                                max_value=season_end,
                                format="MM/DD/YYYY")
 with col2:
-    end_date = st.date_input(f"End Date (Last game: {season_end:%b %d})", 
+    end_date = st.date_input(f"End Date (Last game: {season_end})", 
                              season_end,
                              min_value=season_start,
                              max_value=season_end,
