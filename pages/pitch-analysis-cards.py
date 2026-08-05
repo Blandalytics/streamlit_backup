@@ -126,7 +126,7 @@ def load_data(year):
           .reset_index(drop=True)
          )
     df['pitchtype'] = df['pitchtype'].str.replace('SV','CU').str.replace('FO','FS')
-    date_file = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/date_pitch_map.parquet'
+    date_file = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/date_pitch_map.parquet?raw=true'
     df['game_played'] = df['pitch_id'].map(pd.read_parquet(date_file).set_index('pitch_id').to_dict()['game_played'])
     df['game_played'] = pd.to_datetime(df['game_played']).dt.date
   
