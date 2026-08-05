@@ -1,4 +1,3 @@
-#PLV Aresenal Distribution
 import streamlit as st
 import matplotlib as mpl
 import matplotlib.pyplot as plt
