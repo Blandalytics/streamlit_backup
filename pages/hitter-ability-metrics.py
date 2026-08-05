@@ -144,7 +144,7 @@ def load_season_data(year, stat_agg):
     return df
 
 def load_talent_data(year):
-    file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/hitter_talent_{year}.parquet')
+    file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/hitter_talent_{year}.parquet'
     df = pd.read_parquet(file_name)
     return df
 
