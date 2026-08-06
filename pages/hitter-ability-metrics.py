@@ -47,7 +47,7 @@ sns.set_theme(
 
 line_color = sns.color_palette('vlag', n_colors=100)[0]
 
-seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
+seasonal_constants = pd.read_csv('https://github.com/Blandalytics/streamlit_backup/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
 
 ## Selectors
 # Year
@@ -78,7 +78,7 @@ season_names = {
 def load_season_data(year, stat_agg):
     df = pd.DataFrame()
     for month in range(3,11):
-        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
+        file_name = f'https://github.com/Blandalytics/streamlit_backup/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
                         pd.read_parquet(file_name)[['hittername','p_hand','b_hand','pitch_id','hitterteam','balls','strikes','swing_agg',
                                                  'strike_zone_judgement','decision_value','contact_over_expected',
