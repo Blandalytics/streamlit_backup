@@ -90,13 +90,13 @@ st.image(logo, width=200)
 years = [2026,2025,2024,2023,2022,2021,2020]
 year = st.selectbox('Choose a year:', years,index=0)
 
-seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
+seasonal_constants = pd.read_csv('https://github.com/Blandalytics/streamlit_backup/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
 # Load Data
 @st.cache_data
 def load_data(year):
     df = pd.DataFrame()
     for month in range(3,11):
-        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
+        file_name = f'https://github.com/Blandalytics/streamlit_backup/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
                         pd.read_parquet(file_name)[['pitchername','pitcher_mlb_id','pitch_id',
                                                     'p_hand','b_hand','pitchtype','PLV','velo',
@@ -146,7 +146,7 @@ pitch_threshold = st.number_input(f'Min # of Pitches:',
                                   value=int(default_count))
 
 def get_pla(year,pitch_threshold=pitch_threshold,p_hand=['L','R'],b_hand=['L','R']):
-    pla_data = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/pla_data.csv?raw=true', encoding='latin1')
+    pla_data = pd.read_csv('https://github.com/Blandalytics/streamlit_backup/blob/main/data/pla_data.csv?raw=true', encoding='latin1')
     season_df = (pla_data
              .loc[(pla_data['year_played']==year) &
                   pla_data['p_hand'].isin(p_hand) &
