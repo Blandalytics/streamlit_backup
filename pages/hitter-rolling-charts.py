@@ -49,7 +49,7 @@ sns.set_theme(
 
 line_color = sns.color_palette('vlag', n_colors=100)[0]
 
-seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
+seasonal_constants = pd.read_csv('https://github.com/Blandalytics/streamlit_backup/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
 ## Selectors
 col1, col2 = st.columns([0.5,0.5])
 # Year
@@ -85,7 +85,7 @@ season_names = {
 def load_season_data(year):
     df = pd.DataFrame()
     for month in range(3,11):
-        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
+        file_name = f'https://github.com/Blandalytics/streamlit_backup/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
                         pd.read_parquet(file_name)[['hittername','hitter_mlb_id','p_hand','b_hand','pitch_id','balls','strikes',
                                                  'zone_prob','PLV','swing_agg',
@@ -131,7 +131,7 @@ plv_df = load_season_data(year)
 
 # @st.cache_data(ttl=3600,show_spinner=f"Loading baseline data")
 def load_baselines():
-    file_name = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/hitter_stat_baselines.csv?raw=true'
+    file_name = 'https://github.com/Blandalytics/streamlit_backup/blob/main/data/hitter_stat_baselines.csv?raw=true'
     return pd.read_csv(file_name, encoding='latin1')
 
 grouped_df = load_baselines()
