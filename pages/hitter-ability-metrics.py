@@ -9,7 +9,6 @@ import seaborn as sns
 import scipy as sp
 import urllib
 import os
-import boto3
 import io
 
 
@@ -19,31 +18,10 @@ from PIL import Image
 from scipy import stats
 from io import StringIO
 
-from functions import plSetup
-from functions import get_image
-from functions import key_exists
 
-#AWS Setup
-AWS_S3_BUCKET = os.environ["BUCKETEER_BUCKET_NAME"]
-AWS_ACCESS_KEY_ID = os.environ["BUCKETEER_AWS_ACCESS_KEY_ID"]
-AWS_SECRET_ACCESS_KEY = os.environ["BUCKETEER_AWS_SECRET_ACCESS_KEY"]
-region = 'us-east-1'
-s3 = boto3.resource('s3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-client = boto3.client('s3',
-    region_name=region,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-bucket = s3.Bucket(AWS_S3_BUCKET)
-#Run the PL Setup
-plSetup()
-
-# logo_loc = 'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/PL-text-wht.png?raw=true'
-logo = Image.open('i/PL-text-wht.png')
-# st.image(logo, width=200)
+logo_loc = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/PL-text-wht.png?raw=true'
+logo = Image.open(urllib.request.urlopen(logo_loc))
+st.image(logo, width=200)
 
 ## Set Styling
 # Plot Style
@@ -69,10 +47,7 @@ sns.set_theme(
 
 line_color = sns.color_palette('vlag', n_colors=100)[0]
 
-csv_obj = client.get_object(Bucket='bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85', Key='public/data/plv_seasonal_constants.csv')
-body = csv_obj['Body']
-csv_string = body.read().decode('utf-8')
-seasonal_constants = pd.read_csv(StringIO(csv_string)).set_index('year')
+seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
 
 ## Selectors
 # Year
@@ -103,12 +78,9 @@ season_names = {
 def load_season_data(year, stat_agg):
     df = pd.DataFrame()
     for month in range(3,11):
-        # file_name = f'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
-        buffer = io.BytesIO()
-        object=s3.Object('bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85',f'public/data/{year}_PLV_App_Data-{month}.parquet')
-        object.download_fileobj(buffer)
+        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
-                        pd.read_parquet(buffer)[['hittername','p_hand','b_hand','pitch_id','hitterteam','balls','strikes','swing_agg',
+                        pd.read_parquet(file_name)[['hittername','p_hand','b_hand','pitch_id','hitterteam','balls','strikes','swing_agg',
                                                  'strike_zone_judgement','decision_value','contact_over_expected',
                                                  'adj_power','batter_wOBA','PLV','hitter_mlb_id','zone_prob',
                                                  'dec_val_runs_added','swing_runs_added','take_runs_added', 
@@ -172,17 +144,14 @@ def load_season_data(year, stat_agg):
     return df
 
 def load_talent_data(year):
-    df = pd.DataFrame()
-    buffer = io.BytesIO()
-    object=s3.Object('bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85',f'public/data/hitter_talent_{year}.parquet')
-    object.download_fileobj(buffer)
-    df = pd.read_parquet(buffer)
+    file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/hitter_talent_{year}.parquet'
+    df = pd.read_parquet(file_name)
     return df
 
 col1, col2 = st.columns([1,3])
 with col1:
     stat_agg = st.selectbox('Stat Type', ['Rate','Volume',
-                                          'Talent',
+                                          # 'Talent',
                                           ],index=0)
     if stat_agg != 'Talent':
         plv_df = load_season_data(year,stat_agg)

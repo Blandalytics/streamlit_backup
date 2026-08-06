@@ -11,7 +11,6 @@ import seaborn as sns
 import scipy as sp
 import urllib
 import os
-import boto3
 import io
 
 
@@ -22,35 +21,9 @@ from PIL import Image
 from scipy import stats
 from io import StringIO
 
-from functions import plSetup
-from functions import get_image
-from functions import key_exists
-
-#AWS Setup
-AWS_S3_BUCKET = os.environ["BUCKETEER_BUCKET_NAME"]
-AWS_ACCESS_KEY_ID = os.environ["BUCKETEER_AWS_ACCESS_KEY_ID"]
-AWS_SECRET_ACCESS_KEY = os.environ["BUCKETEER_AWS_SECRET_ACCESS_KEY"]
-region = 'us-east-1'
-s3 = boto3.resource('s3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-client = boto3.client('s3',
-    region_name=region,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)
-bucket = s3.Bucket(AWS_S3_BUCKET)
-#Run the PL Setup
-plSetup()
-
-logo_filename = 'public/data/PL-text-wht.png'
-object = bucket.Object(logo_filename)
-img_data = object.get().get('Body').read()
-logo = get_image(bucket, logo_filename)
-# logo_loc = 'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/PL-text-wht.png?raw=true'
-# logo = Image.open(logo_loc)
-# logo = Image.open('i/PL-text-wht.png')
+logo_loc = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/PL-text-wht.png?raw=true'
+logo = Image.open(urllib.request.urlopen(logo_loc))
+st.image(logo, width=200)
 
 ## Set Styling
 # Plot Style
@@ -76,11 +49,7 @@ sns.set_theme(
 
 line_color = sns.color_palette('vlag', n_colors=100)[0]
 
-csv_obj = client.get_object(Bucket='bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85', Key='public/data/plv_seasonal_constants.csv')
-body = csv_obj['Body']
-csv_string = body.read().decode('utf-8')
-seasonal_constants = pd.read_csv(StringIO(csv_string)).set_index('year')
-
+seasonal_constants = pd.read_csv('https://github.com/Blandalytics/PLV_viz/blob/main/data/plv_seasonal_constants.csv?raw=true').set_index('year')
 ## Selectors
 col1, col2 = st.columns([0.5,0.5])
 # Year
@@ -116,12 +85,9 @@ season_names = {
 def load_season_data(year):
     df = pd.DataFrame()
     for month in range(3,11):
-        # file_name = f'https://s3.amazonaws.com/bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85/public/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
-        buffer = io.BytesIO()
-        object=s3.Object('bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85',f'public/data/{year}_PLV_App_Data-{month}.parquet')
-        object.download_fileobj(buffer)
+        file_name = f'https://github.com/Blandalytics/PLV_viz/blob/main/data/{year}_PLV_App_Data-{month}.parquet?raw=true'
         df = pd.concat([df,
-                        pd.read_parquet(buffer)[['hittername','hitter_mlb_id','p_hand','b_hand','pitch_id','balls','strikes',
+                        pd.read_parquet(file_name)[['hittername','hitter_mlb_id','p_hand','b_hand','pitch_id','balls','strikes',
                                                  'zone_prob','PLV','swing_agg',
                                                  'strike_zone_judgement','decision_value','contact_over_expected',
                                                  'adj_power','batter_wOBA','dec_val_runs_added', 
@@ -165,11 +131,8 @@ plv_df = load_season_data(year)
 
 # @st.cache_data(ttl=3600,show_spinner=f"Loading baseline data")
 def load_baselines():
-    csv_obj = client.get_object(Bucket='bucketeer-36fc68cd-e621-4eac-885d-541aa0f10b85', Key='public/data/hitter_stat_baselines.csv')
-    body = csv_obj['Body']
-    csv_string = body.read().decode('latin1')
-    # seasonal_constants = pd.read_csv(StringIO(csv_string), encoding='latin1')
-    return pd.read_csv(StringIO(csv_string))
+    file_name = 'https://github.com/Blandalytics/PLV_viz/blob/main/data/hitter_stat_baselines.csv?raw=true'
+    return pd.read_csv(file_name, encoding='latin1')
 
 grouped_df = load_baselines()
 
@@ -271,8 +234,8 @@ col1, col2 = st.columns([0.5,0.5])
 
 with col1:
     # Metric Selection
-    metrics = list(stat_names.values())
-    default_stat = metrics.index('Process')
+    metrics = [x for x in list(stat_names.values()) if x != 'Process']
+    default_stat = metrics.index('HR Power')
     metric = st.selectbox('Choose a metric:', metrics, index=default_stat)
 
 with col2:
@@ -681,11 +644,6 @@ def rolling_chart(filename,chart_format):
     fig.text(0.1,0.01,f'As of {data_date.strftime('%-m-%-d-%Y')}',ha='center',fontsize=10)
     
     sns.despine(left=True,bottom=True)
-    #save the fig as image for next time
-    img_data = io.BytesIO()
-    plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-    img_data.seek(0)
-    bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
     #plot the fig
     st.pyplot(fig)
 
@@ -800,14 +758,10 @@ def process_chart(filename, chart_format, graphic_filter):
     sns.despine(left=True,bottom=True)
     
     #save the fig as image for next time
-    img_data = io.BytesIO()
-    plt.savefig(img_data, format='png', bbox_inches='tight', pad_inches=0.2)
-    img_data.seek(0)
-    bucket.put_object(Body=img_data, ContentType='image/png', Key=filename)
     #plot the fig
     st.pyplot(fig)
 
-if (metric !='Process') & (window > sample_size):
+if window > sample_size:
     st.write(f'Not enough {rolling_denom[metric]} ({sample_size})')
 elif st.button("Generate Visualization"):
     filename = f'{year}/{player_name}-{metric}-{pitchtype_base}-{count_select}-{handedness}-{window}-{chart_week}.png'.replace(' ','-').lower()
@@ -819,11 +773,7 @@ elif st.button("Generate Visualization"):
     #     # st.image(img, use_column_width='always')
     #     st.markdown(f"![image](https://s3.amazonaws.com/{AWS_S3_BUCKET}/{filename}#full)")
     # else:
-    if metric=='Process':
-        st.write(f"Process charts start with {window} pitches of the regressed performance of the player from the year prior.\nIf they did not play in the prior year, then league average is used.")
-        process_chart(filename, chart_format, graphic_filter)
-    else:
-        rolling_chart(filename, chart_format)
+    rolling_chart(filename, chart_format)
     
 st.title("Metric Descriptions:")
 st.write('- ***Pitch Runs***: The quality of the pitches a hitter has faced. A higher number means the pitches were expected to yield more runs (so they were "easier" pitches).')
