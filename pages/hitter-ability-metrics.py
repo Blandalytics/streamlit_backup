@@ -74,7 +74,7 @@ season_names = {
 }
 
 # Load Data
-# @st.cache_data(ttl=2*30,show_spinner=f"Loading {year} data")
+@st.cache_data(ttl=600,show_spinner=f"Loading {year} data")
 def load_season_data(year, stat_agg):
     df = pd.DataFrame()
     for month in range(3,11):
