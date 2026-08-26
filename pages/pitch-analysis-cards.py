@@ -217,7 +217,7 @@ def pitch_analysis_card(card_player,pitch_type,chart_type,filename):
         [['pitch_id','p_hand','PLV','velo','pitch_extension','IVB','IHB','adj_vaa','PLV_loc_plus']]
         .agg({
             'pitch_id':'count',
-            'p_hand':pd.Series.mode,
+            'p_hand':'first',
             'PLV':'mean',
             'velo':'mean',
             'pitch_extension':'mean',
